@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-app
+  template:
+    metadata:
+      labels:
+        app: todo-app
+    spec:
+      containers:
+        - name: todo-api-container
+          image: piyushacet/todo_api_image:latest
+          env:
+          - name: PORT
+            value: "4000"
+          - name: MONGO_URI
+            value: "mongodb+srv://n_threads_api:n_threads_api@cluster0.xvygjb7.mongodb.net/?retryWrites=true&w=majority"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-api-service
+spec:
+  selector:
+    app: todo-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 4000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: cluster-issuer
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+
+  tls:
+    - hosts:
+        - todo-api.nxtcoder17.me
+      secretName: todo-api.nxtcoder17.me-tls
+  rules:
+    - host: todo-api.nxtcoder17.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: todo-api-service
+                port:
+                  number: 80
+                  # name: http

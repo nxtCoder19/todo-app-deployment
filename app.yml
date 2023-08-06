@@ -1,0 +1,26 @@
+apiVersion: crds.kloudlite.io/v1
+kind: App
+metadata:
+  name: sample
+  namespace: default
+spec:
+  services:
+    - type: tcp
+      port: 80
+      targetPort: 4000
+  # hpa:
+  #   enabled: true
+  # intercept:
+  #   enabled: true
+  #   toDevice: piyush-laptop
+  containers:
+    - name: main
+      image: piyushacet/piyush_node_image:latest
+      env:
+        - key: PORT
+          value: "4000"
+
+        # - key: PORT
+        # refType: config
+        # refName: my-config
+        # refKey: PORT

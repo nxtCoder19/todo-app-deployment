@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: my-container
+          image: piyushacet/piyush_node_image:latest
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: my-config
+                  key: PORT
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: my-volume
+              mountPath: /path/mount
+      volumes:
+        - name: my-volume
+          hostPath:
+            path: /home/piyush/Desktop
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: my-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: piyush.nxtcoder17.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: my-service
+                port:
+                  name: http

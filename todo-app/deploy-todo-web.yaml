@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-web-app
+  template:
+    metadata:
+      labels:
+        app: todo-web-app
+    spec:
+      containers:
+        - name: todo-web-container
+          image: piyushacet/todo_app_image:latest
+          env:
+          - name: PORT
+            value: "5000"
+          - name: NEXT_PUBLIC_API_URL
+            value: "https://todo-api.nxtcoder17.me"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-web-service
+spec:
+  selector:
+    app: todo-web-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: todo-web-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: cluster-issuer
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+
+  tls:
+    - hosts:
+        - todo-web.nxtcoder17.me
+      secretName: todo-web.nxtcoder17.me-tls
+  rules:
+    - host: todo-web.nxtcoder17.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: todo-web-service
+                port:
+                  number: 80
+                  # name: http
